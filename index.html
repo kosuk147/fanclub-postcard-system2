@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ファンクラブ ポストカード配布管理システム</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .mode-selector {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #ddd;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            background: #f8f9fa;
+            color: #666;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .mode-btn:hover:not(.active) {
+            background: #e9ecef;
+        }
+        
+        .test-mode-indicator {
+            background: #ff6b6b;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .date-settings {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .date-group {
+            margin-bottom: 15px;
+        }
+        
+        .date-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .date-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        
+        .current-event {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .current-event h3 {
+            margin: 0 0 10px 0;
+            color: #2e7d32;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        
+        input[type="text"]:focus, input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .input-mode-switch {
+            display: flex;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #ddd;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c62828;
+            display: none;
+        }
+        
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2e7d32;
+            display: none;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffc107;
+            display: none;
+        }
+        
+        .stats {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .stats-label {
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .stats-value {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .history {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background: #fafafa;
+        }
+        
+        .history-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .member-id {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .timestamp {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .clear-btn {
+            background: #dc3545;
+            font-size: 14px;
+            padding: 8px 15px;
+            margin-top: 10px;
+        }
+        
+        .clear-btn:hover {
+            background: #c82333;
+        }
+        
+        .export-btn {
+            background: #28a745;
+            font-size: 14px;
+            padding: 8px 15px;
+            margin-top: 10px;
+            margin-left: 10px;
+        }
+        
+        .export-btn:hover {
+            background: #218838;
+        }
+        
+        .export-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .export-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .export-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .qr-status {
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        #qrReader {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+        }
+        
+        #qrReader video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎫 ポストカード配布管理</h1>
+        
+        <!-- モード選択 -->
+        <div class="mode-selector">
+            <button class="mode-btn active" id="productionBtn" onclick="switchToProduction()">本番モード</button>
+            <button class="mode-btn" id="testBtn" onclick="switchToTest()">テストモード</button>
+        </div>
+        
+        <!-- テストモード表示 -->
+        <div class="test-mode-indicator" id="testModeIndicator">
+            🧪 テストモード - このモードでは実際のデータに影響しません
+        </div>
+        
+        <!-- タブメニュー -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('distribution')">配布管理</button>
+            <button class="tab" onclick="showTab('settings')">設定</button>
+        </div>
+        
+        <!-- 配布管理タブ -->
+        <div class="tab-content active" id="distribution">
+            <!-- 現在のイベント情報 -->
+            <div class="current-event" id="currentEvent">
+                <h3>📅 現在のイベント</h3>
+                <div id="eventInfo">設定タブでイベント情報を設定してください</div>
+            </div>
+            
+            <div class="stats">
+                <div class="stats-row">
+                    <span class="stats-label">本日の配布済み枚数：</span>
+                    <span class="stats-value" id="todayCount">0</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">総配布済み枚数：</span>
+                    <span class="stats-value" id="totalCount">0</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">最後の配布時刻：</span>
+                    <span class="stats-value" id="lastTime">未配布</span>
+                </div>
+            </div>
+            
+            <div class="error" id="errorMessage"></div>
+            <div class="success" id="successMessage"></div>
+            <div class="warning" id="warningMessage"></div>
+            
+            <!-- 入力モード切替 -->
+            <div class="input-mode-switch">
+                <button type="button" class="mode-btn active" id="manualBtn" onclick="switchToManual()">手動入力</button>
+                <button type="button" class="mode-btn" id="qrBtn" onclick="switchToQR()">QRコード読み取り</button>
+            </div>
+            
+            <form id="memberForm">
+                <div class="form-group" id="manualInput">
+                    <label for="memberId">会員番号</label>
+                    <input type="text" id="memberId" name="memberId" placeholder="会員番号を入力してください" required>
+                </div>
+                
+                <div class="form-group" id="qrInput" style="display: none;">
+                    <label>QRコード読み取り</label>
+                    <div id="qrReader" style="width: 100%; max-width: 400px; margin: 0 auto;"></div>
+                    <div id="qrStatus" class="qr-status">カメラを起動中...</div>
+                    <button type="button" class="btn" id="startQrBtn" onclick="startQRScanner()" style="display: none;">QRスキャン開始</button>
+                    <button type="button" class="btn" id="stopQrBtn" onclick="stopQRScanner()" style="display: none;">QRスキャン停止</button>
+                </div>
+                
+                <button type="submit" class="btn">ポストカード配布</button>
+            </form>
+            
+            <div class="form-group">
+                <label>配布履歴</label>
+                <div class="history" id="history">
+                    <div style="text-align: center; color: #666; font-style: italic;">
+                        まだ配布履歴がありません
+                    </div>
+                </div>
+                <button type="button" class="btn clear-btn" onclick="clearHistory()">履歴をクリア</button>
+                <button type="button" class="btn export-btn" onclick="exportCSV()">CSV出力</button>
+                <button type="button" class="btn export-btn" onclick="exportText()">テキスト出力</button>
+            </div>
+            
+            <div class="export-section">
+                <div class="export-title">📊 データ出力</div>
+                <div class="export-options">
+                    <button type="button" class="btn export-btn" onclick="exportDetailedCSV()">詳細CSV出力</button>
+                    <button type="button" class="btn export-btn" onclick="exportMemberListOnly()">会員番号のみ出力</button>
+                    <button type="button" class="btn export-btn" onclick="copyToClipboard()">クリップボードにコピー</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 設定タブ -->
+        <div class="tab-content" id="settings">
+            <div class="date-settings">
+                <h3>📅 イベント設定</h3>
+                
+                <div class="date-group">
+                    <label for="eventName">イベント名</label>
+                    <input type="text" id="eventName" placeholder="例：2025年春ライブ">
+                </div>
+                
+                <div class="date-group">
+                    <label for="eventDate">イベント日付</label>
+                    <input type="date" id="eventDate">
+                </div>
+                
+                <div class="date-group">
+                    <label for="eventVenue">会場名</label>
+                    <input type="text" id="eventVenue" placeholder="例：東京ドーム">
+                </div>
+                
+                <button type="button" class="btn" onclick="saveEventSettings()">設定を保存</button>
+            </div>
+            
+            <div class="date-settings">
+                <h3>⚙️ システム設定</h3>
+                
+                <div class="date-group">
+                    <label>
+                        <input type="checkbox" id="strictDateCheck"> 
+                        厳密な日付チェック（イベント日以外は配布を制限）
+                    </label>
+                </div>
+                
+                <div class="date-group">
+                    <label>
+                        <input type="checkbox" id="allowDuplicateInTest"> 
+                        テストモードで重複を許可
+                    </label>
+                </div>
+                
+                <button type="button" class="btn" onclick="saveSystemSettings()">設定を保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <script>
+        // グローバル変数
+        let distributedMembers = [];
+        let testDistributedMembers = [];
+        let html5QrCode = null;
+        let isQRMode = false;
+        let isTestMode = false;
+        let eventSettings = {
+            name: '',
+            date: '',
+            venue: ''
+        };
+        let systemSettings = {
+            strictDateCheck: false,
+            allowDuplicateInTest: false
+        };
+        
+        // DOM要素
+        const form = document.getElementById('memberForm');
+        const memberIdInput = document.getElementById('memberId');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const warningMessage = document.getElementById('warningMessage');
+        const todayCount = document.getElementById('todayCount');
+        const totalCount = document.getElementById('totalCount');
+        const lastTime = document.getElementById('lastTime');
+        const history = document.getElementById('history');
+        const manualInput = document.getElementById('manualInput');
+        const qrInput = document.getElementById('qrInput');
+        const qrStatus = document.getElementById('qrStatus');
+        const startQrBtn = document.getElementById('startQrBtn');
+        const stopQrBtn = document.getElementById('stopQrBtn');
+        const manualBtn = document.getElementById('manualBtn');
+        const qrBtn = document.getElementById('qrBtn');
+        const testModeIndicator = document.getElementById('testModeIndicator');
+        const productionBtn = document.getElementById('productionBtn');
+        const testBtn = document.getElementById('testBtn');
+        const currentEvent = document.getElementById('currentEvent');
+        const eventInfo = document.getElementById('eventInfo');
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            updateEventDisplay();
+            updateStats();
+            updateHistory();
+            memberIdInput.focus();
+        });
+        
+        // 設定読み込み
+        function loadSettings() {
+            const savedEventSettings = localStorage.getItem('eventSettings');
+            const savedSystemSettings = localStorage.getItem('systemSettings');
+            const savedDistributedMembers = localStorage.getItem('distributedMembers');
+            const savedTestDistributedMembers = localStorage.getItem('testDistributedMembers');
+            
+            if (savedEventSettings) {
+                eventSettings = JSON.parse(savedEventSettings);
+                document.getElementById('eventName').value = eventSettings.name || '';
+                document.getElementById('eventDate').value = eventSettings.date || '';
+                document.getElementById('eventVenue').value = eventSettings.venue || '';
+            }
+            
+            if (savedSystemSettings) {
+                systemSettings = JSON.parse(savedSystemSettings);
+                document.getElementById('strictDateCheck').checked = systemSettings.strictDateCheck || false;
+                document.getElementById('allowDuplicateInTest').checked = systemSettings.allowDuplicateInTest || false;
+            }
+            
+            if (savedDistributedMembers) {
+                distributedMembers = JSON.parse(savedDistributedMembers);
+            }
+            
+            if (savedTestDistributedMembers) {
+                testDistributedMembers = JSON.parse(savedTestDistributedMembers);
+            }
+        }
+        
+        // タブ切り替え
+        function showTab(tabName) {
+            // タブボタンの状態更新
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // タブコンテンツの表示切り替え
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+        }
+        
+        // 本番モード/テストモード切り替え
+        function switchToProduction() {
+            isTestMode = false;
+            productionBtn.classList.add('active');
+            testBtn.classList.remove('active');
+            testModeIndicator.style.display = 'none';
+            updateStats();
+            updateHistory();
+        }
+        
+        function switchToTest() {
+            isTestMode = true;
+            productionBtn.classList.remove('active');
+            testBtn.classList.add('active');
+            testModeIndicator.style.display = 'block';
+            updateStats();
+            updateHistory();
+        }
+        
+        // 手動入力モードに切り替え
+        function switchToManual() {
+            isQRMode = false;
+            manualInput.style.display = 'block';
+            qrInput.style.display = 'none';
+            manualBtn.classList.add('active');
+            qrBtn.classList.remove('active');
+            
+            if (html5QrCode) {
+                stopQRScanner();
+            }
+            
+            memberIdInput.focus();
+            hideMessages();
+        }
+        
+        // QRコードモードに切り替え
+        function switchToQR() {
+            isQRMode = true;
+            manualInput.style.display = 'none';
+            qrInput.style.display = 'block';
+            manualBtn.classList.remove('active');
+            qrBtn.classList.add('active');
+            
+            hideMessages();
+            startQRScanner();
+        }
+        
+        // QRスキャナー開始
+        function startQRScanner() {
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("qrReader");
+            }
+            
+            qrStatus.textContent = "カメラを起動中...";
+            startQrBtn.style.display = 'none';
+            stopQrBtn.style.display = 'block';
+            
+            const qrConfig = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            };
+            
+            html5QrCode.start(
+                { facingMode: "environment" },
+                qrConfig,
+                (decodedText, decodedResult) => {
+                    qrStatus.textContent = `読み取り成功: ${decodedText}`;
+                    processMemberRegistration(decodedText);
+                },
+                (errorMessage) => {
+                    // エラーは通常のスキャン中のエラーなので無視
+                }
+            ).then(() => {
+                qrStatus.textContent = "QRコードをカメラに向けてください";
+            }).catch(err => {
+                qrStatus.textContent = "カメラの起動に失敗しました";
+                startQrBtn.style.display = 'block';
+                stopQrBtn.style.display = 'none';
+                console.error("QRスキャナー開始エラー:", err);
+            });
+        }
+        
+        // QRスキャナー停止
+        function stopQRScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    qrStatus.textContent = "QRスキャンが停止されました";
+                    startQrBtn.style.display = 'block';
+                    stopQrBtn.style.display = 'none';
+                }).catch(err => {
+                    console.error("QRスキャナー停止エラー:", err);
+                });
+            }
+        }
+        
+        // メッセージ表示関数
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+            warningMessage.style.display = 'none';
+        }
+        
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+            warningMessage.style.display = 'none';
+        }
+        
+        function showWarning(message) {
+            warningMessage.textContent = message;
+            warningMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+        }
+        
+        function hideMessages() {
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            warningMessage.style.display = 'none';
+        }
+        
+        // 現在の時刻を取得
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleString('ja-JP', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+        
+        // 今日の日付を取得
+        function getTodayString() {
+            const today = new Date();
+            return today.toISOString().split('T')[0];
+        }
+        
+        // イベント表示を更新
+        function updateEventDisplay() {
+            if (eventSettings.name || eventSettings.date || eventSettings.venue) {
+                let info = '';
+                if (eventSettings.name) info += `イベント名: ${eventSettings.name}<br>`;
+                if (eventSettings.date) info += `日付: ${eventSettings.date}<br>`;
+                if (eventSettings.venue) info += `会場: ${eventSettings.venue}`;
+                eventInfo.innerHTML = info;
+            } else {
+                eventInfo.textContent = '設定タブでイベント情報を設定してください';
+            }
+        }
+        
+        // 統計情報を更新
+        function updateStats() {
+            const currentData = isTestMode ? testDistributedMembers : distributedMembers;
+            const today = getTodayString();
+            const todayData = currentData.filter(member => member.date === today);
+            
+            todayCount.textContent = todayData.length;
+            totalCount.textContent = currentData.length;
+            
+            if (currentData.length > 0) {
+                lastTime.textContent = currentData[currentData.length - 1].timestamp;
+            } else {
+                lastTime.textContent = '未配布';
+            }
+        }
+        
+        // 履歴を更新
+        function updateHistory() {
+            const currentData = isTestMode ? testDistributedMembers : distributedMembers;
+            
+            if (currentData.length === 0) {
+                history.innerHTML = '<div style="text-align: center; color: #666; font-style: italic;">まだ配布履歴がありません</div>';
+                return;
+            }
+            
+            history.innerHTML = '';
+            currentData.slice().reverse().forEach(member => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <span class="member-id">${member.id}</span>
+                    <span class="timestamp">${member.timestamp}</span>
+                `;
+                history.appendChild(item);
+            });
+        }
+        
+        // 日付チェック
+        function checkEventDate() {
+            if (!systemSettings.strictDateCheck || !eventSettings.date) {
+                return true;
+            }
+            
+            const today = getTodayString();
+            return today === eventSettings.date;
+        }
+        
+        // 会員登録処理
+        function processMemberRegistration(memberId) {
+            if (!memberId || !memberId.trim()) {
+                showError('会員番号を入力してください。');
+                return;
+            }
+            
+            const cleanMemberId = memberId.trim();
+            const currentData = isTestMode ? testDistributedMembers : distributedMembers;
+            const today = getTodayString();
+            
+            // 日付チェック
+            if (!checkEventDate()) {
+                showWarning(`本日（${today}）はイベント日（${eventSettings.date}）ではありません。配布を継続しますか？`);
+            }
+            
+            // 1日1回制限チェック
+            const todayDistribution = currentData.find(member => 
+                member.id === cleanMemberId && member.date === today
+            );
+            
+            if (todayDistribution) {
+                showError(`会員番号 ${cleanMemberId} は本日既にポストカードを受け取っています。（配布時刻: ${todayDistribution.timestamp}）`);
+                return;
+            }
+            
+            // テストモードでの重複チェック
+            if (isTestMode && !systemSettings.allowDuplicateInTest) {
+                const isDuplicate = currentData.some(member => member.id === cleanMemberId);
+                if (isDuplicate) {
+                    showError(`会員番号 ${cleanMemberId} は既に登録されています。（テストモード）`);
+                    return;
+                }
+            }
+            
+            // 配布処理
+            const memberData = {
+                id: cleanMemberId,
+                timestamp: getCurrentTime(),
+                date: today,
+                testMode: isTestMode
+            };
+            
+            if (isTestMode) {
+                testDistributedMembers.push(memberData);
+                localStorage.setItem('testDistributedMembers', JSON.stringify(testDistributedMembers));
+            } else {
+                distributedMembers.push(memberData);
+                localStorage.setItem('distributedMembers', JSON.stringify(distributedMembers));
+            }
+            
+            // 画面更新
+            updateStats();
+            updateHistory();
+            
+            // 成功メッセージ表示
+            const modeText = isTestMode ? '（テストモード）' : '';
+            showSuccess(`会員番号 ${cleanMemberId} にポストカードを配布しました。${modeText}`);
+            
+            // フォームクリア
+            if (!isQRMode) {
+                memberIdInput.value = '';
+                memberIdInput.focus();
+            }
+        }
+        
+        // イベント設定保存
+        function saveEventSettings() {
+            eventSettings.name = document.getElementById('eventName').value;
+            eventSettings.date = document.getElementById('eventDate').value;
+            eventSettings.venue = document.getElementById('eventVenue').value;
+            
+            localStorage.setItem('eventSettings', JSON.stringify(eventSettings));
+            updateEventDisplay();
+            showSuccess('イベント設定を保存しました。');
+        }
+        
+        // システム設定保存
+        function saveSystemSettings() {
+            systemSettings.strictDateCheck = document.getElementById('strictDateCheck').checked;
+            systemSettings.allowDuplicateInTest = document.getElementById('allowDuplicateInTest').checked;
+            
+            localStorage.setItem('systemSettings', JSON.stringify(systemSettings));
+            showSuccess('システム設定を保存しました。');
+        }
+        
+        // 履歴をクリア
+        function clearHistory() {
+            const modeText = isTestMode ? 'テストモードの' : '';
+            if (confirm(`${modeText}配布履歴をすべてクリアしますか？`)) {
+                if (isTestMode) {
+                    testDistributedMembers = [];
+                    localStorage.setItem('testDistributedMembers', JSON.stringify(testDistributedMembers));
+                } else {
+                    distributedMembers = [];
+                    localStorage.setItem('distributedMembers', JSON.stringify(distributedMembers));
+                }
+                
+                updateStats();
+                updateHistory();
+                hideMessages();
+                showSuccess(`${modeText}配布履歴をクリアしました。`);
+            }
+        }
+        
+        // CSVファイルを生成してダウンロード
+        function exportCSV() {
+            const currentData = isTestMode ? testDistributedMembers : distributedMembers;
+            if (currentData.length === 0) {
+                showError('配布履歴がありません。');
+                return;
+            }
+            
+            const csvContent = generateCSVContent();
+            const fileName = isTestMode ? 'postcard_distribution_test.csv' : 'postcard_distribution.csv';
+            downloadFile(csvContent, fileName, 'text/csv');
+            showSuccess('CSVファイルをダウンロードしました。');
+        }
+        
+        // 詳細CSVファイルを生成してダウンロード
+        function exportDetailedCSV() {
+            const currentData = isTestMode ? testDistributedMembers : distributedMembers;
+            if (currentData.length === 0) {
+                showError('配布履歴がありません。');
+                return;
+            }
+            
+            const csvContent = generateDetailedCSVContent();
+            const fileName = isTestMode ? 'postcard_distribution_detailed_test.csv' : 'postcard_distribution_detailed.csv';
+            downloadFile(csvContent, fileName, 'text/csv');
+            showSuccess('詳細CSVファイルをダウンロードしました。');
+        }
+        
+        // テキストファイルを生成してダウンロード
+        function exportText() {
+            const currentData = isTestMode ? testDistributedMembers : distributedMembers;
+            if (currentData.length === 0) {
+                showError('配布履歴がありません。');
+                return;
+            }
+            
+            const textContent = generateTextContent();
+            const fileName = isTestMode ? 'postcard_distribution_test.txt' : 'postcard_distribution.txt';
+            downloadFile(textContent, fileName, 'text/plain');
+            showSuccess('テキストファイルをダウンロードしました。');
+        }
+        
+        // 会員番号のみを出力
+        function exportMemberListOnly() {
+            const currentData = isTestMode ? testDistributedMembers : distributedMembers;
+            if (currentData.length === 0) {
+                showError('配布履歴がありません。');
+                return;
+            }
+            
+            const memberIds = currentData.map(member => member.id).join('\n');
+            const fileName = isTestMode ? 'member_ids_only_test.txt' : 'member_ids_only.txt';
+            downloadFile(memberIds, fileName, 'text/plain');
+            showSuccess('会員番号リストをダウンロードしました。');
+        }
+        
+        // クリップボードにコピー
+        function copyToClipboard() {
+            const currentData = isTestMode ? testDistributedMembers : distributedMembers;
+            if (currentData.length === 0) {
+                showError('配布履歴がありません。');
+                return;
+            }
+            
+            const textContent = generateTextContent();
+            navigator.clipboard.writeText(textContent).then(() => {
+                showSuccess('配布履歴をクリップボードにコピーしました。');
+            }).catch(() => {
+                showError('クリップボードへのコピーに失敗しました。');
+            });
+        }
+        
+        // CSV内容を生成
+        function generateCSVContent() {
+            const currentData = isTestMode ? testDistributedMembers : distributedMembers;
+            const header = '会員番号,配布日時,配布日\n';
+            const rows = currentData.map(member => 
+                `${member.id},"${member.timestamp}","${member.date}"`
+            ).join('\n');
+            return header + rows;
+        }
+        
+        // 詳細CSV内容を生成
+        function generateDetailedCSVContent() {
+            const currentData = isTestMode ? testDistributedMembers : distributedMembers;
+            const currentTime = getCurrentTime();
+            const modeText = isTestMode ? ' (テストモード)' : '';
+            const today = getTodayString();
+            const todayData = currentData.filter(member => member.date === today);
+            
+            const header = '会員番号,配布日時,配布日,配布順序,モード\n';
+            const rows = currentData.map((member, index) => 
+                `${member.id},"${member.timestamp}","${member.date}",${index + 1},${member.testMode ? 'テスト' : '本番'}`
+            ).join('\n');
+            
+            let content = `# ポストカード配布履歴${modeText} - ${currentTime}\n`;
+            content += `# イベント名: ${eventSettings.name || '未設定'}\n`;
+            content += `# イベント日: ${eventSettings.date || '未設定'}\n`;
+            content += `# 会場: ${eventSettings.venue || '未設定'}\n`;
+            content += `# 本日の配布数: ${todayData.length}枚\n`;
+            content += `# 総配布数: ${currentData.length}枚\n\n`;
+            content += header + rows;
+            
+            return content;
+        }
+        
+        // テキスト内容を生成
+        function generateTextContent() {
+            const currentData = isTestMode ? testDistributedMembers : distributedMembers;
+            const currentTime = getCurrentTime();
+            const modeText = isTestMode ? ' (テストモード)' : '';
+            const today = getTodayString();
+            const todayData = currentData.filter(member => member.date === today);
+            
+            let content = `ポストカード配布履歴${modeText}\n`;
+            content += `出力日時: ${currentTime}\n`;
+            content += `イベント名: ${eventSettings.name || '未設定'}\n`;
+            content += `イベント日: ${eventSettings.date || '未設定'}\n`;
+            content += `会場: ${eventSettings.venue || '未設定'}\n`;
+            content += `本日の配布数: ${todayData.length}枚\n`;
+            content += `総配布数: ${currentData.length}枚\n\n`;
+            content += `--- 配布履歴 ---\n`;
+            
+            currentData.forEach((member, index) => {
+                const mode = member.testMode ? ' (テスト)' : '';
+                content += `${index + 1}. 会員番号: ${member.id} | 配布日時: ${member.timestamp} | 日付: ${member.date}${mode}\n`;
+            });
+            
+            content += `\n--- 会員番号一覧 ---\n`;
+            content += currentData.map(member => member.id).join('\n');
+            
+            return content;
+        }
+        
+        // ファイルダウンロード
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // フォーム送信処理
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!isQRMode) {
+                const memberId = memberIdInput.value.trim();
+                processMemberRegistration(memberId);
+            }
+        });
+        
+        // 入力時にメッセージを非表示
+        memberIdInput.addEventListener('input', hideMessages);
+    </script>
+</body>
+</html>
